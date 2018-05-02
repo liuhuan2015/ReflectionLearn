@@ -81,13 +81,62 @@ public native Field[] getDeclaredFields();///获取所有的属性，可获取�
         for (Field field : fields) {
             System.out.println("Field Name:" + field.getName());
             System.out.println("Field type:" + field.getType());
-            System.out.println("Field generic type:" + field.getGenericType());//能够获取到泛型类型
-            }
+            System.out.println("Field generic type:" + field.getGenericType());//能够获取到泛型类型
+        }
         
 可以获取到它的修饰符<br>
-    public int getModifiers();
+
+        public int getModifiers();
     
-我们拿到Field最重要的目的是：进行Field内容的读取和赋值。
+我们拿到Field最重要的目的是：进行Field内容的读取和赋值。具体的代码编写和测试见工程能项目。
+        
+        A testa = new A();
+        testa.a = 10;
+        Class c = A.class;
+        try {
+            Field fieldA = c.getField("a");//获取属性
+
+            int ra = fieldA.getInt(testa);//获取属性值
+
+            System.out.println("reflection testa.a=" + ra);//打印
+
+            fieldA.setInt(testa, 15);//赋值
+
+            System.out.println("testa.a=" + testa.a);//打印
+
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        
+###### ❷ Method的获取以及操控
+一个方法由下面几个要素构成：方法名称、方法参数、方法返回值、方法的修饰符、方法可能抛出的异常。反射提供了相应的api来获取这些要素。此处只简要展示一下方法的执行，使用反射的方式。
+
+       public native Object invoke(Object obj, Object... args)
+       
+第一个参数obj是Method所依附的Class对应的类的实例，如果这个方法是一个静态方法，则obj为null，后面对应的是方法的参数。<br>
+
+invoke()返回的结果是Object类型的，所以使用的时候一般要进行强制转换。
+
+在对Method 调用 invoke() 的时候，如果方法本身会抛出异常，那么这个异常会被包装，由Method 统一抛出 InvocationTargetException。而通过 InvocationTargetException.getCause() 可以获取真正的异常。
+
+        //非静态方法的调用
+        MethodInvokeTestModel model = new MethodInvokeTestModel();
+
+        try {
+            Method method2_nonstatic = clazz.getDeclaredMethod("add", int.class, int.class);
+            method2_nonstatic.setAccessible(true);
+            int result = (int) method2_nonstatic.invoke(model, 5, 11);
+            System.out.println("result : " + result);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        
+
+
 
 
 
