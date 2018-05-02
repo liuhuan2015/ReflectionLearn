@@ -44,4 +44,57 @@ Class就是一个对象，它用来代表运行在就java虚拟机中的类和�
 #### 四 Class内容清单
 我们获取Class对象的最终目的是获取其中的内容。
 ##### (1) Class的名字
+具体的结果可见项目测试代码。
+Class.getName():
+
+        Class clz3 = new int[]{}.getClass();
+        System.out.println(clz3.getName());
+        
+Class.getSimpleName():
+
+        Class clz = Outter.Inner.class;
+        System.out.println("Inner Class name:" + clz.getName());
+        System.out.println("Inner Class simple name:" + clz.getSimpleName());
+        
+getCanonicalName():返回一个Class对象的官方名字。
+
+##### (2) Class的成员
+一个类的成员包括属性和方法，对应到Class中就是Field，Method，Constructor。
+
+###### ❶ Field的获取以及操控
+
+public Field getField(String name);//获取public属性，当前类没有时会向祖先类获取
+
+public native Field getDeclaredField(String name);//可获取到private属性，但是不会获取到从祖先类继承下来的属性
+
+public Field[] getFields();//获取所有的public属性，当前类没有时会向祖先类获取
+
+public native Field[] getDeclaredFields();///获取所有的属性，可获取到private属性，但是不会获取到从祖先类继承下来的属性
+
+具体的使用代码见工程项目。
+
+当我们拿到一个Field（属性）时，我们可以获取到它的名称、类型<br>
+    
+    Class clazz = Son.class;
+        Field[] fields = clazz.getFields();
+
+        for (Field field : fields) {
+            System.out.println("Field Name:" + field.getName());
+            System.out.println("Field type:" + field.getType());
+            System.out.println("Field generic type:" + field.getGenericType());//能够获取到泛型类型
+            }
+        
+可以获取到它的修饰符<br>
+    public int getModifiers();
+    
+我们拿到Field最重要的目的是：进行Field内容的读取和赋值。
+
+
+
+        
+
+
+
+
+
 
