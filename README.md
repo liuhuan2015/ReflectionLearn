@@ -55,7 +55,6 @@ Class.getSimpleName():
         Class clz = Outter.Inner.class;
         System.out.println("Inner Class name:" + clz.getName());
         System.out.println("Inner Class simple name:" + clz.getSimpleName());
-        
 getCanonicalName():返回一个Class对象的官方名字。
 
 ##### (2) Class的成员
@@ -84,35 +83,28 @@ public native Field[] getDeclaredFields();///获取所有的属性，可获取�
             System.out.println("Field generic type:" + field.getGenericType());//能够获取到泛型类型
         }
         
-可以获取到它的修饰符<br>
+可以获取到它的修饰符
 
         public int getModifiers();
-    
 我们拿到Field最重要的目的是：进行Field内容的读取和赋值。具体的代码编写和测试见工程能项目。
-        
+
         A testa = new A();
         testa.a = 10;
         Class c = A.class;
         try {
-            Field fieldA = c.getField("a");//获取属性
-
-            int ra = fieldA.getInt(testa);//获取属性值
-
-            System.out.println("reflection testa.a=" + ra);//打印
-
-            fieldA.setInt(testa, 15);//赋值
-
-            System.out.println("testa.a=" + testa.a);//打印
-
-        } catch (NoSuchFieldException e) {
+            Field fieldA = c.getField("a");//获取属性
+            int ra = fieldA.getInt(testa);//获取属性值
+            System.out.println("reflection testa.a=" + ra);//打印
+            fieldA.setInt(testa, 15);//赋值
+            System.out.println("testa.a=" + testa.a);//打印
+            } catch (NoSuchFieldException e) {
             e.printStackTrace();
-        }
+            }
         
 ###### ❷ Method的获取以及操控
 一个方法由下面几个要素构成：方法名称、方法参数、方法返回值、方法的修饰符、方法可能抛出的异常。反射提供了相应的api来获取这些要素。此处只简要展示一下方法的执行，使用反射的方式。
 
-       public native Object invoke(Object obj, Object... args)
-       
+    public native Object invoke(Object obj, Object... args)
 第一个参数obj是Method所依附的Class对应的类的实例，如果这个方法是一个静态方法，则obj为null，后面对应的是方法的参数。<br>
 
 invoke()返回的结果是Object类型的，所以使用的时候一般要进行强制转换。
@@ -135,9 +127,84 @@ invoke()返回的结果是Object类型的，所以使用的时候一般要进行
             e.printStackTrace();
         }
         
+###### ❸ Constructor的获取以及操控
+Constructor，构造方法，在反射机制中把它和Method分离开了，单独使用Constructor这个类表示。Constructor和Method差不多，但是还是有区别的，如：它能够创建一个对象。
 
+    Class clazz = ConstructorTestModel.class;
+        try {
+            System.out.println(clazz.newInstance().toString());
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
+        try {
+            Constructor constructor = clazz.getConstructor(String.class);
+            ConstructorTestModel model = (ConstructorTestModel) constructor.newInstance("我是小明,找我干啥?");
+            System.out.println(model.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+在java反射机制中，有两种方法可以用来创建类的实例对象：Class.newInstance()和Constructor.newInstance()。官方文档建议开发者使用见面这种方法，原因如下：<br>
+1.Class.newInstance()只能调用无参的构造方法，而Constructor.newInstance()则可以调用任意的构造方法。
+
+2.Class.newInstance()通过构造方法直接抛出异常，而Constructor.newInstance()会把抛出的异常包装到InvocationTargetException中去，这个和Method行为一致。
+
+3.Class.newInstance()要求构造方法能够被访问，而Constructor.newInstance()却能够访问private修饰的构造方法。
+
+###### ❹ 反射中的数组和枚举
+java反射机制还另外细分了两个概念：数组和枚举。
+数组本质上是一个Class，在Class中存在一个方法用来判断它是否是一个数组
+
+        public native boolean isArray();
+我们可以使用反射动态的创建数组，然后进行读取和赋值
+
+        try {
+            Shuzu shuzu = (Shuzu) clz.newInstance();
+
+            //获取array属性
+            Field arrayF = clz.getDeclaredField("array");
+            arrayF.setAccessible(true);
+
+            //创建一个数组对象，数组长度为3,并赋值
+            Object o = Array.newInstance(int.class, 3);
+            Array.set(o, 0, 1);
+            Array.set(o, 1, 3);
+            Array.set(o, 2, 5);
+
+            //对对象中的属性赋值
+            arrayF.set(shuzu, o);
+
+            //打印
+            int[] array = shuzu.getArray();
+            for (int i = 0; i < array.length; i++) {
+                System.out.println("array index : " + i + " , value : " + array[i]);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+枚举这里就不写了，具体可见工程代码。
+
+#### 总结
+文章开头，用自动驾驶来比喻反射，实际目的是为了使初学者对反射有一个大体的印象和一个模糊的认知，实际上反射不是自动驾驶，它是什么取决于我们自己对它的理解。<br>
+1.java中反射是一种非常规编码方式。
+
+2.java中反射机制的操作入口是获取Class对象，有Class.forName(...),.class,object.getClass()三种方式。
+
+3.一般我们获取Class对象的目的都是为了获取它的Field或者Method或者Constructor，然后进行一些操作。
+
+4.Field操作主要涉及到类别的获取，以及数值的读取和赋值。
+
+5.Method算是反射机制中最核心的内容，通常的反射都是为了调用某个Method的invoke方法。
+
+6.通过Class.newInstance()和Constructor.newInstance()可以创建类的实例对象，但是推荐后者。
+
+7.数组和枚举可以被看成普通的Class对待
+
+需要注意的是：反射是非常规开发手段，它会抛弃java虚拟机的很多优化，所以同样功能的代码，使用反射会比使用正常方式慢。所以在考虑使用反射时，要考虑到它的时间成本。就如无人驾驶，用着很爽，但是也会有一些风险。
 
 
         
